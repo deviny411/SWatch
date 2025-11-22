@@ -89,9 +89,12 @@ export default function DashboardPage() {
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
             <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
             <div className="space-y-3">
-              <button className="w-full px-4 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition text-left">
+              <a
+                href="/call"
+                className="block w-full px-4 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition text-left"
+              >
                 📞 Request a Watcher
-              </button>
+              </a>
               <button className="w-full px-4 py-3 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition text-left">
                 ⚙️ Settings
               </button>
