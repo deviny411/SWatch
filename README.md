@@ -44,21 +44,35 @@ SWatch/
 ### Prerequisites
 - Node.js >= 18.0.0
 - npm >= 9.0.0
-- PostgreSQL >= 14
+- Docker Desktop (for PostgreSQL & Redis)
 
-### Installation
+### Quick Start (Automated Setup)
+
+Run the setup script to automatically configure everything:
 
 ```bash
-# Install dependencies
-npm install
+./setup.sh
+```
 
-# Set up environment variables
-cp frontend/.env.example frontend/.env.local
-cp backend/.env.example backend/.env
+This will:
+- Start PostgreSQL and Redis via Docker
+- Create `.env` files with secure defaults
+- Initialize the database schema
+- Install all dependencies
 
-# Run development servers
+Then start developing:
+
+```bash
 npm run dev
 ```
+
+Visit:
+- Frontend: http://localhost:3000
+- Backend: http://localhost:4000/health
+
+### Manual Setup
+
+If you prefer to set up manually, see [SETUP_GUIDE.md](SETUP_GUIDE.md) for detailed instructions.
 
 ### Development
 
