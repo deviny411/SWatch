@@ -22,11 +22,16 @@ export const authenticate = (
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
-      id: string
+      userId: string
       role: UserRole
     }
 
-    req.user = decoded
+    // Map userId to id for consistency in the request object
+    req.user = {
+      id: decoded.userId,
+      role: decoded.role,
+    }
+
     next()
   } catch (error) {
     res.status(401).json({ error: 'Invalid token' })
