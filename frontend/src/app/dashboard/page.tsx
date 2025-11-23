@@ -98,12 +98,20 @@ export default function DashboardPage() {
               {isConnected ? '🟢 Connected' : '🔴 Disconnected'}
             </p>
           </div>
-          <button
-            onClick={handleLogout}
-            className="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition"
-          >
-            Logout
-          </button>
+          <div className="flex gap-3">
+            <button
+              onClick={() => router.push('/watcher-training')}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition font-semibold"
+            >
+              📚 Training Guide
+            </button>
+            <button
+              onClick={handleLogout}
+              className="px-4 py-2 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+            >
+              Logout
+            </button>
+          </div>
         </div>
       </header>
 
