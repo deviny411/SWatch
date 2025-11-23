@@ -105,14 +105,18 @@ export const handleCallEvents = (io: Server, socket: Socket) => {
    * Handle WebRTC signaling (offer/answer/ICE candidates)
    */
   socket.on('call:signal', (signal: WebRTCSignal) => {
-    console.log(`🔄 WebRTC signal: ${signal.type} from ${signal.from} to ${signal.to}`)
+    console.log(`📥 Received WebRTC signal: ${signal.type} from ${signal.from} to ${signal.to}`)
 
     // Forward signal to the target peer
     const targetSocketId = userSocketMap.get(signal.to)
+    console.log(`🔍 Looking up user ${signal.to} in userSocketMap (${userSocketMap.size} entries)`)
+
     if (targetSocketId) {
+      console.log(`📤 Forwarding signal to socket ${targetSocketId}`)
       io.to(targetSocketId).emit('call:signal', signal)
     } else {
-      console.error(`Target user ${signal.to} not connected`)
+      console.error(`❌ Target user ${signal.to} not connected`)
+      console.error(`   Available users: ${Array.from(userSocketMap.keys()).join(', ')}`)
     }
   })
 

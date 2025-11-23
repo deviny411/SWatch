@@ -120,16 +120,20 @@ export function useWebRTC(options: UseWebRTCOptions) {
 
     const cleanup = on('call:signal', (signal: any) => {
       console.log('📥 Received signal:', signal.type, 'from', signal.from, 'to', signal.to)
+      console.log('   Peer exists:', !!peerRef.current)
+      console.log('   Signal data:', signal.data ? 'present' : 'missing')
 
       if (peerRef.current && signal.data) {
         try {
-          console.log('   Processing signal with peer...')
+          console.log('   ✅ Processing signal with peer...')
           peerRef.current.signal(signal.data)
         } catch (err) {
           console.error('❌ Error processing signal:', err)
         }
       } else {
         console.warn('⚠️ Cannot process signal - peer not ready or no data')
+        console.warn('   peerRef.current:', !!peerRef.current)
+        console.warn('   signal.data:', !!signal.data)
       }
     })
 
