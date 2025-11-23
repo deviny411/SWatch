@@ -16,12 +16,12 @@ dotenv.config()
 const app = express()
 const server = http.createServer(app)
 
-// Socket.io CORS - allow ngrok domains for testing
+// Socket.io CORS - allow ngrok and cloudflare tunnel domains for testing
 const io = new Server(server, {
   cors: {
     origin: (origin, callback) => {
       if (!origin) return callback(null, true)
-      if (origin.includes('localhost') || origin.includes('ngrok-free.app') || origin.includes('ngrok.io')) {
+      if (origin.includes('localhost') || origin.includes('ngrok-free.app') || origin.includes('ngrok.io') || origin.includes('trycloudflare.com')) {
         return callback(null, true)
       }
       callback(new Error('Not allowed by CORS'))
@@ -45,8 +45,8 @@ app.use(cors({
       return callback(null, true)
     }
 
-    // Allow ngrok domains for testing
-    if (origin.includes('ngrok-free.app') || origin.includes('ngrok.io')) {
+    // Allow ngrok and cloudflare tunnel domains for testing
+    if (origin.includes('ngrok-free.app') || origin.includes('ngrok.io') || origin.includes('trycloudflare.com')) {
       return callback(null, true)
     }
 
