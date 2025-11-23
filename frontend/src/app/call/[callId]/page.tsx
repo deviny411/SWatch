@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
-import { useRouter, useParams } from 'next/navigation'
+import { useRouter, useParams, useSearchParams } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { useSocket } from '@/hooks/useSocket'
 import { useMediaStream } from '@/hooks/useMediaStream'
@@ -11,7 +11,7 @@ import { CallType } from '@shared/types'
 export default function CallPage() {
   const router = useRouter()
   const params = useParams()
-  const searchParams = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '')
+  const searchParams = useSearchParams()
 
   const callId = params.callId as string
   // Get remoteUserId and isInitiator from URL params (passed by matching flow)
@@ -28,6 +28,16 @@ export default function CallPage() {
 
   const localVideoRef = useRef<HTMLVideoElement>(null)
   const remoteVideoRef = useRef<HTMLVideoElement>(null)
+
+  // Debug logging
+  useEffect(() => {
+    console.log('🔍 Call page loaded with params:', {
+      callId,
+      remoteUserId,
+      isInitiator,
+      hasUser: !!user,
+    })
+  }, [callId, remoteUserId, isInitiator, user])
 
   // Get media stream
   const {
