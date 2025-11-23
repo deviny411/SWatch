@@ -26,6 +26,7 @@ export default function CallPage() {
   const [isMuted, setIsMuted] = useState(false)
   const [isVideoOff, setIsVideoOff] = useState(false)
   const [emergencyTriggered, setEmergencyTriggered] = useState(false)
+  const [showSymptomsSidebar, setShowSymptomsSidebar] = useState(false)
 
   const localVideoRef = useRef<HTMLVideoElement>(null)
   const remoteVideoRef = useRef<HTMLVideoElement>(null)
@@ -248,6 +249,113 @@ export default function CallPage() {
               Emergency services notified
             </div>
           )}
+        </div>
+      )}
+
+      {/* Symptoms Sidebar Toggle (Watcher Only) */}
+      {!isInitiator && (
+        <button
+          onClick={() => setShowSymptomsSidebar(!showSymptomsSidebar)}
+          className="absolute top-20 right-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg shadow-lg transition font-semibold"
+        >
+          {showSymptomsSidebar ? '✖ Close' : '📋 Overdose Symptoms'}
+        </button>
+      )}
+
+      {/* Symptoms Sidebar (Watcher Only) */}
+      {!isInitiator && (
+        <div className={`absolute top-0 right-0 h-full w-80 bg-gray-900 bg-opacity-95 text-white shadow-2xl transition-transform duration-300 overflow-y-auto ${
+          showSymptomsSidebar ? 'translate-x-0' : 'translate-x-full'
+        }`}>
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold">⚠️ Overdose Signs</h2>
+              <button
+                onClick={() => setShowSymptomsSidebar(false)}
+                className="text-white hover:text-gray-300 text-2xl"
+              >
+                ✖
+              </button>
+            </div>
+
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-lg font-bold text-red-400 mb-2">🚨 Critical Signs - Call 911 Immediately:</h3>
+                <ul className="space-y-2 text-sm">
+                  <li className="flex items-start gap-2">
+                    <span className="text-red-500">•</span>
+                    <span>Unconscious or unable to wake up</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-red-500">•</span>
+                    <span>Slow, shallow, or stopped breathing (less than 1 breath every 5 seconds)</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-red-500">•</span>
+                    <span>Choking or gurgling sounds</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-red-500">•</span>
+                    <span>Blue or purple lips and fingernails</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-red-500">•</span>
+                    <span>Limp body</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-red-500">•</span>
+                    <span>Pale or clammy skin</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="border-t border-gray-700 pt-4">
+                <h3 className="text-lg font-bold text-yellow-400 mb-2">⚠️ Warning Signs:</h3>
+                <ul className="space-y-2 text-sm">
+                  <li className="flex items-start gap-2">
+                    <span className="text-yellow-500">•</span>
+                    <span>Extreme confusion or inability to speak</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-yellow-500">•</span>
+                    <span>Drowsiness or nodding off</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-yellow-500">•</span>
+                    <span>Slow heartbeat</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-yellow-500">•</span>
+                    <span>Small "pinpoint" pupils</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-yellow-500">•</span>
+                    <span>Vomiting</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div className="border-t border-gray-700 pt-4">
+                <h3 className="text-lg font-bold text-green-400 mb-2">✅ What To Do:</h3>
+                <ol className="space-y-2 text-sm list-decimal list-inside">
+                  <li>Click the EMERGENCY button above</li>
+                  <li>Try to keep them awake and breathing</li>
+                  <li>Lay them on their side to prevent choking</li>
+                  <li>Stay with them until help arrives</li>
+                  <li>Do NOT give them food, drink, or other drugs</li>
+                  <li>If they stop breathing, administer Narcan if available</li>
+                </ol>
+              </div>
+
+              <div className="border-t border-gray-700 pt-4 bg-blue-900 bg-opacity-50 p-3 rounded">
+                <h3 className="text-sm font-bold mb-1">💡 Important:</h3>
+                <p className="text-xs">
+                  Every second counts. When in doubt, trigger the emergency alert.
+                  It's better to be safe than sorry.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
