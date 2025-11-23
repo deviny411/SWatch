@@ -12,8 +12,8 @@
     "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
     "dev:frontend": "npm run dev --workspace=frontend",
     "dev:backend": "npm run dev --workspace=backend",
-    "build": "npm run build --workspace=backend",
-    "start": "npm run start --workspace=backend",
+    "build": "cd backend && npm run build && ls -la dist/",
+    "start": "cd backend && npm run start",
     "test": "npm run test --workspaces",
     "lint": "npm run lint --workspaces"
   },
