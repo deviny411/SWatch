@@ -4,6 +4,14 @@ import { Server } from 'socket.io'
 import cors from 'cors'
 import helmet from 'helmet'
 import dotenv from 'dotenv'
+
+console.log('🔧 Starting SafeWatch backend...')
+dotenv.config()
+console.log('✅ Environment variables loaded')
+console.log('📝 DATABASE_URL:', process.env.DATABASE_URL ? 'Present' : 'MISSING!')
+console.log('📝 PORT:', process.env.PORT || '4000 (default)')
+console.log('📝 JWT_SECRET:', process.env.JWT_SECRET ? 'Present' : 'MISSING!')
+
 import { authRouter } from './routes/auth.routes'
 import { callRouter } from './routes/call.routes'
 import { emergencyRouter } from './routes/emergency.routes'
@@ -11,7 +19,7 @@ import { watcherRouter } from './routes/watcher.routes'
 import { setupSocketHandlers } from './socket'
 import { errorHandler } from './middleware/error.middleware'
 
-dotenv.config()
+console.log('✅ All imports loaded successfully')
 
 const app = express()
 const server = http.createServer(app)
