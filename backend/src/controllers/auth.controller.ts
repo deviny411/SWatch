@@ -8,6 +8,8 @@ export class AuthController {
    * Register a new user
    * POST /api/auth/register
    * Body: { phoneNumber, password, role? }
+   *
+   * TEMPORARY: Bypassing database to test other features
    */
   async register(req: Request, res: Response) {
     try {
@@ -22,16 +24,28 @@ export class AuthController {
         return res.status(400).json({ error: 'Password must be at least 6 characters' })
       }
 
-      // Register user
-      const result = await authService.register({
-        phoneNumber,
-        password,
-        role: role || UserRole.USER,
-      })
+      // TEMPORARY WORKAROUND: Create mock user without database
+      const jwt = require('jsonwebtoken')
+
+      const mockUser = {
+        id: `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        role: role || 'USER',
+        status: 'ONLINE',
+        isAnonymous: false,
+        createdAt: new Date(),
+      }
+
+      const token = jwt.sign(
+        { userId: mockUser.id, role: mockUser.role },
+        process.env.JWT_SECRET || 'dev-secret',
+        { expiresIn: '7d' }
+      )
+
+      console.log('✅ Created temporary user (database bypass):', mockUser.id, phoneNumber)
 
       res.status(201).json({
-        user: result.user,
-        token: result.token,
+        user: mockUser,
+        token: token,
       })
     } catch (error: any) {
       console.error('Registration error:', error)
@@ -43,6 +57,8 @@ export class AuthController {
    * Login user
    * POST /api/auth/login
    * Body: { phoneNumber, password }
+   *
+   * TEMPORARY: Bypassing database to test other features
    */
   async login(req: Request, res: Response) {
     try {
@@ -53,15 +69,28 @@ export class AuthController {
         return res.status(400).json({ error: 'Phone number and password are required' })
       }
 
-      // Login user
-      const result = await authService.login({
-        phoneNumber,
-        password,
-      })
+      // TEMPORARY WORKAROUND: Create mock user without database
+      const jwt = require('jsonwebtoken')
+
+      const mockUser = {
+        id: `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        role: 'USER',
+        status: 'ONLINE',
+        isAnonymous: false,
+        createdAt: new Date(),
+      }
+
+      const token = jwt.sign(
+        { userId: mockUser.id, role: mockUser.role },
+        process.env.JWT_SECRET || 'dev-secret',
+        { expiresIn: '7d' }
+      )
+
+      console.log('✅ Logged in temporary user (database bypass):', mockUser.id, phoneNumber)
 
       res.status(200).json({
-        user: result.user,
-        token: result.token,
+        user: mockUser,
+        token: token,
       })
     } catch (error: any) {
       console.error('Login error:', error)
@@ -72,15 +101,35 @@ export class AuthController {
   /**
    * Create anonymous user
    * POST /api/auth/anonymous
+   *
+   * TEMPORARY: Bypassing database to test other features
    */
   async anonymousLogin(req: Request, res: Response) {
     try {
-      // Create anonymous user
-      const result = await authService.createAnonymousUser()
+      // TEMPORARY WORKAROUND: Create mock anonymous user without database
+      // This bypasses the database password issue so you can test other features
+      const jwt = require('jsonwebtoken')
+      const { v4: uuidv4 } = require('crypto')
+
+      const mockUser = {
+        id: `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        role: 'USER',
+        status: 'ONLINE',
+        isAnonymous: true,
+        createdAt: new Date(),
+      }
+
+      const token = jwt.sign(
+        { userId: mockUser.id, role: mockUser.role },
+        process.env.JWT_SECRET || 'dev-secret',
+        { expiresIn: '7d' }
+      )
+
+      console.log('✅ Created temporary anonymous user (database bypass):', mockUser.id)
 
       res.status(201).json({
-        user: result.user,
-        token: result.token,
+        user: mockUser,
+        token: token,
       })
     } catch (error: any) {
       console.error('Anonymous login error:', error)
