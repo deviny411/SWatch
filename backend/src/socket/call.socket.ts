@@ -178,6 +178,44 @@ export const handleCallEvents = (io: Server, socket: Socket) => {
   })
 
   /**
+   * Handle emergency trigger
+   */
+  socket.on('call:emergency', async (data: { callId: string }) => {
+    try {
+      console.log(`🚨 Emergency triggered for call ${data.callId}`)
+
+      const call = await callService.getCall(data.callId)
+      if (!call) {
+        return
+      }
+
+      // Mark call as emergency
+      await callService.markAsEmergency(data.callId)
+
+      // Notify both parties
+      const userSocketId = userSocketMap.get(call.userId)
+      const watcherSocketId = call.watcherId ? userSocketMap.get(call.watcherId) : null
+
+      const emergencyData = {
+        callId: data.callId,
+        message: 'Emergency services have been notified'
+      }
+
+      if (userSocketId) {
+        io.to(userSocketId).emit('call:emergency-triggered', emergencyData)
+      }
+      if (watcherSocketId) {
+        io.to(watcherSocketId).emit('call:emergency-triggered', emergencyData)
+      }
+
+      console.log(`✅ Emergency notifications sent for call ${data.callId}`)
+    } catch (error: any) {
+      console.error('Emergency trigger error:', error)
+      socket.emit('call:error', { message: error.message || 'Failed to trigger emergency' })
+    }
+  })
+
+  /**
    * Handle bandwidth change (video to audio fallback)
    */
   socket.on('call:bandwidth-change', async (data: { callId: string; type: CallType }) => {

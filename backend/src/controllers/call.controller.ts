@@ -97,6 +97,28 @@ export class CallController {
   }
 
   /**
+   * Trigger emergency for a call
+   * POST /api/calls/:callId/emergency
+   */
+  async triggerEmergency(req: AuthRequest, res: Response) {
+    try {
+      const { callId } = req.params
+
+      await callService.markAsEmergency(callId)
+
+      console.log(`🚨 Emergency triggered for call ${callId} by ${req.user?.id}`)
+
+      res.status(200).json({
+        message: 'Emergency services notified',
+        emergency: true
+      })
+    } catch (error: any) {
+      console.error('Trigger emergency error:', error)
+      res.status(400).json({ error: error.message || 'Failed to trigger emergency' })
+    }
+  }
+
+  /**
    * Get active call for current user
    * GET /api/calls/active
    */

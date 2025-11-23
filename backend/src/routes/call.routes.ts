@@ -14,5 +14,6 @@ router.get('/available-watchers', callController.getAvailableWatchers)
 router.get('/:callId', callController.getCall)
 router.patch('/:callId/status', callController.updateCallStatus)
 router.post('/:callId/end', callController.endCall)
+router.post('/:callId/emergency', callController.triggerEmergency)
 
 export { router as callRouter }
