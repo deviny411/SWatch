@@ -1,4 +1,6 @@
 import { Server, Socket } from 'socket.io'
+import { callService } from '../services/call.service'
+import { CallType } from '@shared/types'
 
 interface WaitingUser {
   userId: string
@@ -45,8 +47,8 @@ export const handleMatchingEvents = (io: Server, socket: Socket) => {
   })
 
   // Watcher accepts a user
-  socket.on('watcher:accept-user', (data: { userId: string; callId: string }) => {
-    console.log(`✅ Watcher accepted user ${data.userId} for call ${data.callId}`)
+  socket.on('watcher:accept-user', async (data: { userId: string; watcherId: string }) => {
+    console.log(`✅ Watcher ${data.watcherId} accepting user ${data.userId}`)
 
     const waitingUser = waitingQueue.get(data.userId)
     if (!waitingUser) {
@@ -54,24 +56,43 @@ export const handleMatchingEvents = (io: Server, socket: Socket) => {
       return
     }
 
-    // Mark user as in call
-    waitingUser.status = 'in_call'
-    waitingQueue.set(data.userId, waitingUser)
+    try {
+      // Create a call between the watcher and the user
+      const call = await callService.requestCall({
+        userId: data.watcherId,
+        type: CallType.VIDEO,
+      })
 
-    // Notify the waiting user that they've been matched
-    io.to(waitingUser.socketId).emit('seek-help:matched', {
-      callId: data.callId,
-      watcherId: socket.id,
-    })
+      console.log(`📞 Created call ${call.id} for match`)
 
-    // Remove from queue after a delay (they're now in a call)
-    setTimeout(() => {
-      waitingQueue.delete(data.userId)
+      // Mark user as in call
+      waitingUser.status = 'in_call'
+      waitingQueue.set(data.userId, waitingUser)
+
+      // Notify the waiting user that they've been matched
+      io.to(waitingUser.socketId).emit('seek-help:matched', {
+        callId: call.id,
+        watcherId: data.watcherId,
+      })
+
+      // Notify the watcher that the match was successful
+      socket.emit('watcher:match-success', {
+        callId: call.id,
+        userId: data.userId,
+      })
+
+      // Remove from queue after a delay (they're now in a call)
+      setTimeout(() => {
+        waitingQueue.delete(data.userId)
+        broadcastQueueUpdate(io)
+      }, 2000)
+
+      // Update the queue for all watchers
       broadcastQueueUpdate(io)
-    }, 2000)
-
-    // Update the queue for all watchers
-    broadcastQueueUpdate(io)
+    } catch (error) {
+      console.error('Failed to create call for match:', error)
+      socket.emit('error', { message: 'Failed to create call' })
+    }
   })
 
   // Handle disconnection - remove from queue if waiting

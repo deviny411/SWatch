@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/contexts/AuthContext'
 import { useSocket } from '@/hooks/useSocket'
-import { apiClient } from '@/lib/api'
 
 interface WaitingUser {
   userId: string
@@ -15,7 +14,7 @@ interface WaitingUser {
 export default function DashboardPage() {
   const router = useRouter()
   const { user, token, logout, isLoading } = useAuth()
-  const { emit, on } = useSocket()
+  const { emit, on, isConnected } = useSocket()
   const [waitingUsers, setWaitingUsers] = useState<WaitingUser[]>([])
   const [connecting, setConnecting] = useState<string | null>(null)
 
@@ -26,7 +25,9 @@ export default function DashboardPage() {
   }, [user, isLoading, router])
 
   useEffect(() => {
-    if (!user) return
+    if (!user || !isConnected) return
+
+    console.log('🔌 Socket connected, requesting queue')
 
     // Request list of waiting users
     emit('watcher:get-queue')
@@ -37,42 +38,33 @@ export default function DashboardPage() {
       setWaitingUsers(data.queue.filter(u => u.status === 'waiting'))
     }
 
+    // Listen for successful match
+    const handleMatchSuccess = (data: { callId: string }) => {
+      console.log('✅ Match successful, joining call:', data.callId)
+      router.push(`/call/${data.callId}`)
+    }
+
     on('watcher:queue-update', handleQueueUpdate)
+    on('watcher:match-success', handleMatchSuccess)
 
     // Refresh queue every 5 seconds
     const interval = setInterval(() => {
-      emit('watcher:get-queue')
+      if (isConnected) {
+        emit('watcher:get-queue')
+      }
     }, 5000)
 
     return () => {
       clearInterval(interval)
     }
-  }, [user, emit, on])
+  }, [user, emit, on, router, isConnected])
 
-  const handleAcceptUser = async (userId: string) => {
-    if (!token) return
-
+  const handleAcceptUser = (userId: string) => {
+    console.log('👍 Accepting user:', userId)
     setConnecting(userId)
-    try {
-      // Create a call with this user
-      const response = await apiClient.post<{ call: { id: string } }>(
-        '/calls',
-        {
-          recipientId: userId,
-          type: 'support',
-        },
-        { token }
-      )
 
-      // Notify the backend to match them
-      emit('watcher:accept-user', { userId, callId: response.call.id })
-
-      // Redirect to the call
-      router.push(`/call/${response.call.id}`)
-    } catch (error) {
-      console.error('Failed to accept user:', error)
-      setConnecting(null)
-    }
+    // Just emit the socket event - backend will handle call creation
+    emit('watcher:accept-user', { userId, watcherId: user?.id })
   }
 
   const handleLogout = async () => {
@@ -103,7 +95,7 @@ export default function DashboardPage() {
           <div>
             <h1 className="text-2xl font-bold">SafeWatch Watcher Dashboard</h1>
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              Help keep someone safe
+              {isConnected ? '🟢 Connected' : '🔴 Disconnected'}
             </p>
           </div>
           <button
@@ -146,7 +138,17 @@ export default function DashboardPage() {
           </div>
 
           <div className="p-6">
-            {waitingUsers.length === 0 ? (
+            {!isConnected ? (
+              <div className="text-center py-12">
+                <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mb-4"></div>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+                  Connecting...
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400">
+                  Establishing connection to match with users
+                </p>
+              </div>
+            ) : waitingUsers.length === 0 ? (
               <div className="text-center py-12">
                 <div className="w-20 h-20 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
                   <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
