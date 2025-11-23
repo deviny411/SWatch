@@ -113,16 +113,18 @@ export default function CallPage() {
     const cleanup = on('call:ended', (data: { callId: string; reason?: string }) => {
       console.log('Call ended:', data)
       alert(data.reason === 'disconnect' ? 'Other user disconnected' : 'Call ended')
-      router.push('/dashboard')
+      // Route based on role: watchers go to dashboard, users seeking help go to login
+      router.push(isInitiator ? '/login' : '/dashboard')
     })
 
     return cleanup
-  }, [on, router])
+  }, [on, router, isInitiator])
 
   const handleEndCall = () => {
     endCall()
     stopStream()
-    router.push('/dashboard')
+    // Route based on role: watchers go to dashboard, users seeking help go to login
+    router.push(isInitiator ? '/login' : '/dashboard')
   }
 
   const handleToggleMute = () => {
