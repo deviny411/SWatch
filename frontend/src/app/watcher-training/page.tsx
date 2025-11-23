@@ -106,7 +106,7 @@ export default function WatcherTrainingPage() {
             <iframe
               width="100%"
               height="100%"
-              src="https://www.youtube.com/embed/jW63mtjoqec"
+              src="https://www.youtube.com/embed/O-XfGu_Iq14"
               title="Opioid Overdose Recognition and Response"
               frameBorder="0"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -115,7 +115,7 @@ export default function WatcherTrainingPage() {
             ></iframe>
           </div>
           <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-            Video: "How to Respond to an Opioid Overdose" - Harm Reduction Coalition
+            Video: Overdose Recognition and Naloxone Administration Training
           </p>
         </div>
 
