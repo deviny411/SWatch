@@ -90,10 +90,10 @@ export default function DashboardPage() {
             <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
             <div className="space-y-3">
               <a
-                href="/call"
+                href="/test-call"
                 className="block w-full px-4 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition text-left"
               >
-                📞 Request a Watcher
+                🎥 Test Video Call
               </a>
               <button className="w-full px-4 py-3 bg-gray-200 dark:bg-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition text-left">
                 ⚙️ Settings
@@ -112,27 +112,30 @@ export default function DashboardPage() {
                 ✅ <strong>Authentication working!</strong> You're successfully logged in.
               </p>
               <p className="text-gray-600 dark:text-gray-300">
-                🔒 Your data is stored securely in PostgreSQL
+                🎥 <strong>Test video calling</strong> to demo two-person calls
               </p>
               <p className="text-gray-600 dark:text-gray-300">
-                🚀 Video calling features coming next
+                🔒 Privacy-first design with anonymous mode
               </p>
             </div>
           </div>
         </div>
 
         {/* Test Results */}
-        <div className="mt-6 bg-green-50 dark:bg-green-900 border border-green-200 dark:border-green-700 rounded-lg p-6">
-          <h3 className="text-lg font-semibold text-green-800 dark:text-green-200 mb-2">
-            ✅ Backend Integration Test Successful!
+        <div className="mt-6 bg-blue-50 dark:bg-blue-900 border border-blue-200 dark:border-blue-700 rounded-lg p-6">
+          <h3 className="text-lg font-semibold text-blue-800 dark:text-blue-200 mb-2">
+            🎥 Test Video Calling Ready!
           </h3>
-          <ul className="text-sm text-green-700 dark:text-green-300 space-y-1">
-            <li>✓ Database connection working</li>
-            <li>✓ User authentication working</li>
+          <ul className="text-sm text-blue-700 dark:text-blue-300 space-y-1">
+            <li>✓ User authentication working (mock mode)</li>
             <li>✓ JWT tokens working</li>
-            <li>✓ API endpoints responding</li>
-            <li>✓ Frontend-backend communication working</li>
+            <li>✓ WebRTC video calling ready</li>
+            <li>✓ Socket.io real-time signaling ready</li>
+            <li>✓ Two-person P2P calls enabled</li>
           </ul>
+          <p className="mt-3 text-sm text-blue-600 dark:text-blue-400">
+            Click "Test Video Call" above to start testing two-person video calls!
+          </p>
         </div>
       </div>
     </main>
