@@ -1,3 +1,18 @@
+// Add global error handlers first
+process.on('uncaughtException', (error) => {
+  console.error('💥 UNCAUGHT EXCEPTION:', error)
+  console.error('Stack:', error.stack)
+  process.exit(1)
+})
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('💥 UNHANDLED REJECTION at:', promise)
+  console.error('Reason:', reason)
+  process.exit(1)
+})
+
+console.log('🔧 Starting SafeWatch backend...')
+
 import express from 'express'
 import http from 'http'
 import { Server } from 'socket.io'
@@ -5,13 +20,13 @@ import cors from 'cors'
 import helmet from 'helmet'
 import dotenv from 'dotenv'
 
-console.log('🔧 Starting SafeWatch backend...')
 dotenv.config()
 console.log('✅ Environment variables loaded')
 console.log('📝 DATABASE_URL:', process.env.DATABASE_URL ? 'Present' : 'MISSING!')
 console.log('📝 PORT:', process.env.PORT || '4000 (default)')
 console.log('📝 JWT_SECRET:', process.env.JWT_SECRET ? 'Present' : 'MISSING!')
 
+console.log('📦 Loading route imports...')
 import { authRouter } from './routes/auth.routes'
 import { callRouter } from './routes/call.routes'
 import { emergencyRouter } from './routes/emergency.routes'
