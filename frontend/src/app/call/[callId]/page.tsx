@@ -36,8 +36,19 @@ export default function CallPage() {
       remoteUserId,
       isInitiator,
       hasUser: !!user,
+      rawParams: {
+        remoteUserIdParam,
+        isInitiatorParam
+      },
+      fullURL: typeof window !== 'undefined' ? window.location.href : 'SSR'
     })
-  }, [callId, remoteUserId, isInitiator, user])
+
+    if (!remoteUserIdParam) {
+      console.error('❌ ERROR: remoteUserId is missing from URL params!')
+      console.error('   Full URL:', typeof window !== 'undefined' ? window.location.href : 'SSR')
+      console.error('   This will prevent WebRTC from initializing!')
+    }
+  }, [callId, remoteUserId, isInitiator, user, remoteUserIdParam, isInitiatorParam])
 
   // Get media stream
   const {
