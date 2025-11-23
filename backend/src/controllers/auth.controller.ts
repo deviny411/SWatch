@@ -154,6 +154,8 @@ export class AuthController {
   /**
    * Get current user info
    * GET /api/auth/me
+   *
+   * TEMPORARY: Bypassing database to test other features
    */
   async me(req: AuthRequest, res: Response) {
     try {
@@ -161,15 +163,16 @@ export class AuthController {
         return res.status(401).json({ error: 'Not authenticated' })
       }
 
-      // The user ID is already in req.user from the auth middleware
-      const { userModel } = require('../models/user.model')
-      const user = await userModel.findById(req.user.id)
-
-      if (!user) {
-        return res.status(404).json({ error: 'User not found' })
+      // TEMPORARY WORKAROUND: Return mock user from JWT token data
+      const mockUser = {
+        id: req.user.id,
+        role: req.user.role,
+        status: 'ONLINE',
+        isAnonymous: req.user.id.includes('temp-'),
+        createdAt: new Date(),
       }
 
-      res.status(200).json({ user })
+      res.status(200).json({ user: mockUser })
     } catch (error: any) {
       console.error('Get user error:', error)
       res.status(500).json({ error: 'Failed to get user' })
