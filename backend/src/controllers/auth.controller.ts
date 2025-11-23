@@ -8,8 +8,6 @@ export class AuthController {
    * Register a new user
    * POST /api/auth/register
    * Body: { phoneNumber, password, role? }
-   *
-   * TEMPORARY: Bypassing database to test other features
    */
   async register(req: Request, res: Response) {
     try {
@@ -24,29 +22,16 @@ export class AuthController {
         return res.status(400).json({ error: 'Password must be at least 6 characters' })
       }
 
-      // TEMPORARY WORKAROUND: Create mock user without database
-      const jwt = require('jsonwebtoken')
-
-      const mockUser = {
-        id: `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        role: role || 'USER',
-        status: 'ONLINE',
-        isAnonymous: false,
-        createdAt: new Date(),
-      }
-
-      const token = jwt.sign(
-        { userId: mockUser.id, role: mockUser.role },
-        process.env.JWT_SECRET || 'dev-secret',
-        { expiresIn: '7d' }
-      )
-
-      console.log('✅ Created temporary user (database bypass):', mockUser.id, phoneNumber)
-
-      res.status(201).json({
-        user: mockUser,
-        token: token,
+      // Register user via authService
+      const result = await authService.register({
+        phoneNumber,
+        password,
+        role: role as UserRole,
       })
+
+      console.log('✅ User registered successfully:', result.user.id, phoneNumber)
+
+      res.status(201).json(result)
     } catch (error: any) {
       console.error('Registration error:', error)
       res.status(400).json({ error: error.message || 'Registration failed' })
@@ -57,8 +42,6 @@ export class AuthController {
    * Login user
    * POST /api/auth/login
    * Body: { phoneNumber, password }
-   *
-   * TEMPORARY: Bypassing database to test other features
    */
   async login(req: Request, res: Response) {
     try {
@@ -69,29 +52,15 @@ export class AuthController {
         return res.status(400).json({ error: 'Phone number and password are required' })
       }
 
-      // TEMPORARY WORKAROUND: Create mock user without database
-      const jwt = require('jsonwebtoken')
-
-      const mockUser = {
-        id: `user-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        role: 'USER',
-        status: 'ONLINE',
-        isAnonymous: false,
-        createdAt: new Date(),
-      }
-
-      const token = jwt.sign(
-        { userId: mockUser.id, role: mockUser.role },
-        process.env.JWT_SECRET || 'dev-secret',
-        { expiresIn: '7d' }
-      )
-
-      console.log('✅ Logged in temporary user (database bypass):', mockUser.id, phoneNumber)
-
-      res.status(200).json({
-        user: mockUser,
-        token: token,
+      // Login user via authService
+      const result = await authService.login({
+        phoneNumber,
+        password,
       })
+
+      console.log('✅ User logged in successfully:', result.user.id, phoneNumber)
+
+      res.status(200).json(result)
     } catch (error: any) {
       console.error('Login error:', error)
       res.status(401).json({ error: error.message || 'Login failed' })
@@ -101,36 +70,15 @@ export class AuthController {
   /**
    * Create anonymous user
    * POST /api/auth/anonymous
-   *
-   * TEMPORARY: Bypassing database to test other features
    */
   async anonymousLogin(req: Request, res: Response) {
     try {
-      // TEMPORARY WORKAROUND: Create mock anonymous user without database
-      // This bypasses the database password issue so you can test other features
-      const jwt = require('jsonwebtoken')
-      const { v4: uuidv4 } = require('crypto')
+      // Create anonymous user via authService
+      const result = await authService.createAnonymousUser()
 
-      const mockUser = {
-        id: `temp-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        role: 'USER',
-        status: 'ONLINE',
-        isAnonymous: true,
-        createdAt: new Date(),
-      }
+      console.log('✅ Anonymous user created successfully:', result.user.id)
 
-      const token = jwt.sign(
-        { userId: mockUser.id, role: mockUser.role },
-        process.env.JWT_SECRET || 'dev-secret',
-        { expiresIn: '7d' }
-      )
-
-      console.log('✅ Created temporary anonymous user (database bypass):', mockUser.id)
-
-      res.status(201).json({
-        user: mockUser,
-        token: token,
-      })
+      res.status(201).json(result)
     } catch (error: any) {
       console.error('Anonymous login error:', error)
       res.status(500).json({ error: error.message || 'Anonymous login failed' })
@@ -154,8 +102,6 @@ export class AuthController {
   /**
    * Get current user info
    * GET /api/auth/me
-   *
-   * TEMPORARY: Bypassing database to test other features
    */
   async me(req: AuthRequest, res: Response) {
     try {
@@ -163,16 +109,10 @@ export class AuthController {
         return res.status(401).json({ error: 'Not authenticated' })
       }
 
-      // TEMPORARY WORKAROUND: Return mock user from JWT token data
-      const mockUser = {
-        id: req.user.id,
-        role: req.user.role,
-        status: 'ONLINE',
-        isAnonymous: req.user.id.includes('temp-'),
-        createdAt: new Date(),
-      }
+      // Get user from database via authService
+      const user = await authService.getUserByToken(req.headers.authorization?.split(' ')[1] || '')
 
-      res.status(200).json({ user: mockUser })
+      res.status(200).json({ user })
     } catch (error: any) {
       console.error('Get user error:', error)
       res.status(500).json({ error: 'Failed to get user' })
