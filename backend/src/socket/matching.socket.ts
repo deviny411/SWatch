@@ -57,21 +57,14 @@ export const handleMatchingEvents = (io: Server, socket: Socket) => {
     }
 
     try {
-      // Create a call with the user seeking help as the userId
-      const call = await callService.requestCall({
+      // Create a call with the user seeking help as the userId and watcher's user ID
+      const call = await callService.requestCallWithWatcher({
         userId: data.userId,
+        watcherUserId: data.watcherId,
         type: CallType.VIDEO,
       })
 
-      console.log(`📞 Created call ${call.id} for match`)
-
-      // Assign the watcher to the call
-      const updatedCall = await callService.assignWatcher({
-        callId: call.id,
-        watcherId: data.watcherId,
-      })
-
-      console.log(`✅ Assigned watcher ${data.watcherId} to call ${call.id}`)
+      console.log(`📞 Created call ${call.id} for match between user ${data.userId} and watcher ${data.watcherId}`)
 
       // Mark user as in call
       waitingUser.status = 'in_call'
@@ -83,11 +76,15 @@ export const handleMatchingEvents = (io: Server, socket: Socket) => {
         watcherId: data.watcherId,
       })
 
+      console.log(`📤 Notified user ${data.userId} of match`)
+
       // Notify the watcher that the match was successful
       socket.emit('watcher:match-success', {
         callId: call.id,
         userId: data.userId,
       })
+
+      console.log(`📤 Notified watcher ${data.watcherId} of match success`)
 
       // Remove from queue after a delay (they're now in a call)
       setTimeout(() => {
@@ -98,7 +95,7 @@ export const handleMatchingEvents = (io: Server, socket: Socket) => {
       // Update the queue for all watchers
       broadcastQueueUpdate(io)
     } catch (error) {
-      console.error('Failed to create call for match:', error)
+      console.error('❌ Failed to create call for match:', error)
       socket.emit('error', { message: 'Failed to create call' })
     }
   })

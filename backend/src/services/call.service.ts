@@ -8,6 +8,12 @@ export interface CreateCallOptions {
   type: CallType
 }
 
+export interface CreateCallWithWatcherOptions {
+  userId: string
+  watcherUserId: string
+  type: CallType
+}
+
 export interface AssignWatcherOptions {
   callId: string
   watcherId: string
@@ -38,6 +44,50 @@ export class CallService {
     console.log(`📞 Call requested: ${call.id} by user ${userId} (${type})`)
 
     return call
+  }
+
+  /**
+   * Request a new call with a watcher already assigned (matching flow)
+   */
+  async requestCallWithWatcher(options: CreateCallWithWatcherOptions): Promise<Call> {
+    const { userId, watcherUserId, type } = options
+
+    console.log(`📞 Creating call with watcher: user=${userId}, watcher=${watcherUserId}`)
+
+    // Check if user already has an active call
+    const existingCall = await callModel.getActiveCallForUser(userId)
+    if (existingCall) {
+      throw new Error('You already have an active call')
+    }
+
+    // Update user status
+    await userModel.updateStatus(userId, UserStatus.IN_CALL)
+
+    // Get or create watcher record for the watcher user
+    let watcher = await watcherModel.findByUserId(watcherUserId)
+    if (!watcher) {
+      console.log(`📝 Creating watcher record for user ${watcherUserId}`)
+      watcher = await watcherModel.createBasicWatcher(watcherUserId)
+    }
+
+    // Create new call
+    const call = await callModel.create({
+      userId,
+      type,
+    })
+
+    // Assign watcher
+    await callModel.assignWatcher(call.id, watcher.id)
+
+    // Update watcher user status
+    await userModel.updateStatus(watcherUserId, UserStatus.IN_CALL)
+    await watcherModel.incrementCallCount(watcher.id)
+
+    console.log(`✅ Call ${call.id} created with watcher ${watcher.id} assigned`)
+
+    // Fetch and return the updated call
+    const updatedCall = await callModel.findById(call.id)
+    return updatedCall!
   }
 
   /**

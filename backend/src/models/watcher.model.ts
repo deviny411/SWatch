@@ -44,6 +44,24 @@ export class WatcherModel {
   }
 
   /**
+   * Create a basic watcher record (for MVP - auto-approved and available)
+   */
+  async createBasicWatcher(userId: string): Promise<Watcher> {
+    const result = await query(
+      `INSERT INTO watchers (
+        user_id, status, timezone, training_completed,
+        background_check_completed, is_available, max_concurrent_calls,
+        created_at
+      )
+       VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
+       RETURNING *`,
+      [userId, WatcherStatus.APPROVED, 'UTC', true, true, true, 5]
+    )
+
+    return this.mapRowToWatcher(result.rows[0])
+  }
+
+  /**
    * Find watcher by ID
    */
   async findById(id: string): Promise<Watcher | null> {
