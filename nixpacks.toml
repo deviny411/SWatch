@@ -1,0 +1,17 @@
+[phases.setup]
+nixPkgs = ["nodejs_22", "npm-9_x"]
+
+[phases.install]
+cmds = ["npm ci"]
+
+[phases.build]
+cmds = [
+    "npm run build --workspace=backend",
+    "echo '=== Checking backend/dist directory ==='",
+    "ls -la backend/dist/ || echo 'backend/dist does not exist'",
+    "echo '=== Checking for index.js ==='",
+    "find . -name 'index.js' -type f | grep dist || echo 'No dist/index.js found'"
+]
+
+[start]
+cmd = "cd backend && node dist/index.js"
