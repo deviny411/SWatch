@@ -15,17 +15,43 @@ dotenv.config()
 
 const app = express()
 const server = http.createServer(app)
+
+// Socket.io CORS - allow ngrok domains for testing
 const io = new Server(server, {
   cors: {
-    origin: process.env.ALLOWED_ORIGINS?.split(',') || 'http://localhost:3000',
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true)
+      if (origin.includes('localhost') || origin.includes('ngrok-free.app') || origin.includes('ngrok.io')) {
+        return callback(null, true)
+      }
+      callback(new Error('Not allowed by CORS'))
+    },
     credentials: true,
   },
 })
 
 // Middleware
 app.use(helmet())
+
+// CORS configuration - allow configured origins or ngrok domains for testing
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000']
 app.use(cors({
-  origin: process.env.ALLOWED_ORIGINS?.split(',') || 'http://localhost:3000',
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or Postman)
+    if (!origin) return callback(null, true)
+
+    // Check if origin is in allowed list
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true)
+    }
+
+    // Allow ngrok domains for testing
+    if (origin.includes('ngrok-free.app') || origin.includes('ngrok.io')) {
+      return callback(null, true)
+    }
+
+    callback(new Error('Not allowed by CORS'))
+  },
   credentials: true,
 }))
 app.use(express.json())
