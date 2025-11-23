@@ -24,14 +24,14 @@ export default function SeekHelpPage() {
     setStatus('waiting')
 
     // Listen for match
-    const handleMatched = (data: { callId: string; watcherId: string }) => {
+    const handleMatched = (data: { callId: string; remoteUserId: string }) => {
       console.log('✅ Matched with watcher!', data)
       setStatus('matched')
       setMatchedCallId(data.callId)
 
-      // Redirect to call after a brief delay
+      // Redirect to call after a brief delay, passing remoteUserId and isInitiator
       setTimeout(() => {
-        router.push(`/call/${data.callId}`)
+        router.push(`/call/${data.callId}?remoteUserId=${data.remoteUserId}&isInitiator=true`)
       }, 1500)
     }
 

@@ -39,9 +39,9 @@ export default function DashboardPage() {
     }
 
     // Listen for successful match
-    const handleMatchSuccess = (data: { callId: string }) => {
+    const handleMatchSuccess = (data: { callId: string; remoteUserId: string }) => {
       console.log('✅ Match successful, joining call:', data.callId)
-      router.push(`/call/${data.callId}`)
+      router.push(`/call/${data.callId}?remoteUserId=${data.remoteUserId}&isInitiator=false`)
     }
 
     on('watcher:queue-update', handleQueueUpdate)

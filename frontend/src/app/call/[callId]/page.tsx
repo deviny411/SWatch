@@ -6,20 +6,23 @@ import { useAuth } from '@/contexts/AuthContext'
 import { useSocket } from '@/hooks/useSocket'
 import { useMediaStream } from '@/hooks/useMediaStream'
 import { useWebRTC } from '@/hooks/useWebRTC'
-import { Call, CallStatus, CallType } from '@shared/types'
-import { apiClient } from '@/lib/api'
+import { CallType } from '@shared/types'
 
 export default function CallPage() {
   const router = useRouter()
   const params = useParams()
+  const searchParams = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '')
+
   const callId = params.callId as string
+  // Get remoteUserId and isInitiator from URL params (passed by matching flow)
+  const remoteUserIdParam = searchParams.get('remoteUserId')
+  const isInitiatorParam = searchParams.get('isInitiator') === 'true'
 
   const { user, token } = useAuth()
   const { emit, on } = useSocket()
 
-  const [call, setCall] = useState<Call | null>(null)
-  const [isInitiator, setIsInitiator] = useState(false)
-  const [remoteUserId, setRemoteUserId] = useState<string>('')
+  const [isInitiator] = useState(isInitiatorParam)
+  const [remoteUserId] = useState(remoteUserIdParam || '')
   const [isMuted, setIsMuted] = useState(false)
   const [isVideoOff, setIsVideoOff] = useState(false)
 
@@ -38,39 +41,17 @@ export default function CallPage() {
     audio: true,
   })
 
-  // Fetch call details
+  // Log call details once we have them
   useEffect(() => {
-    const fetchCall = async () => {
-      if (!token) return
-
-      try {
-        const response = await apiClient.get<{ call: Call; watcherUserId?: string }>(`/calls/${callId}`, { token })
-        setCall(response.call)
-
-        // Determine if this user is the initiator (user seeking help initiates the call)
-        const initiator = response.call.userId === user?.id
-        setIsInitiator(initiator)
-
-        // Set remote user ID
-        // If user seeking help (initiator): remote is watcher's USER ID
-        // If watcher (non-initiator): remote is the user seeking help's ID
-        const remoteId = initiator ? response.watcherUserId! : response.call.userId
-        setRemoteUserId(remoteId)
-
-        console.log('📞 Call details:', {
-          isInitiator: initiator,
-          localUser: user?.id,
-          remoteUserId: remoteId,
-          watcherUserId: response.watcherUserId,
-          callUserId: response.call.userId,
-        })
-      } catch (err) {
-        console.error('Failed to fetch call:', err)
-      }
+    if (remoteUserId && user) {
+      console.log('📞 Call setup:', {
+        callId,
+        isInitiator,
+        localUser: user.id,
+        remoteUserId,
+      })
     }
-
-    fetchCall()
-  }, [callId, token, user])
+  }, [callId, isInitiator, user, remoteUserId])
 
   // Start local stream
   useEffect(() => {
@@ -92,7 +73,7 @@ export default function CallPage() {
   const { remoteStream, connectionState, endCall } = useWebRTC({
     callId,
     isInitiator,
-    callType: call?.type || CallType.VIDEO,
+    callType: CallType.VIDEO,
     localStream,
     remoteUserId,
   })
@@ -133,7 +114,7 @@ export default function CallPage() {
     setIsVideoOff(!isVideoOff)
   }
 
-  if (!call || !localStream) {
+  if (!remoteUserId || !localStream) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-900">
         <div className="text-center text-white">

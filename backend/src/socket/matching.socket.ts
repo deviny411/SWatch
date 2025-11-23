@@ -73,7 +73,7 @@ export const handleMatchingEvents = (io: Server, socket: Socket) => {
       // Notify the waiting user that they've been matched
       io.to(waitingUser.socketId).emit('seek-help:matched', {
         callId: call.id,
-        watcherId: data.watcherId,
+        remoteUserId: data.watcherId, // Pass the watcher's user ID
       })
 
       console.log(`📤 Notified user ${data.userId} of match`)
@@ -81,7 +81,7 @@ export const handleMatchingEvents = (io: Server, socket: Socket) => {
       // Notify the watcher that the match was successful
       socket.emit('watcher:match-success', {
         callId: call.id,
-        userId: data.userId,
+        remoteUserId: data.userId, // Pass the user's ID
       })
 
       console.log(`📤 Notified watcher ${data.watcherId} of match success`)
