@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
-    "start": "node -r tsconfig-paths/register dist/backend/src/index.js",
+    "start": "node -r ./register-paths.js dist/backend/src/index.js",
     "lint": "eslint src/**/*.ts",
     "type-check": "tsc --noEmit",
     "init-db": "tsx scripts/init-db.ts",
