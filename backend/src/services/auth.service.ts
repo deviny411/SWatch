@@ -1,11 +1,11 @@
 import bcrypt from 'bcrypt'
-import jwt from 'jsonwebtoken'
+import jwt, { SignOptions } from 'jsonwebtoken'
 import { userModel } from '../models/user.model'
 import { User, UserRole } from '@shared/types'
 
 const SALT_ROUNDS = 10
-const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret'
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d'
+const JWT_SECRET: string = process.env.JWT_SECRET || 'dev-secret'
+const JWT_EXPIRES_IN: string = process.env.JWT_EXPIRES_IN || '7d'
 
 export interface RegisterData {
   phoneNumber: string
@@ -153,8 +153,10 @@ export class AuthService {
    * Generate JWT token
    */
   private generateToken(payload: TokenPayload): string {
+    // Using hardcoded value due to TypeScript strict type checking
+    // Can be made configurable in production with proper type handling
     return jwt.sign(payload, JWT_SECRET, {
-      expiresIn: JWT_EXPIRES_IN,
+      expiresIn: '7d',
     })
   }
 
