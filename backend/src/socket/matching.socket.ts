@@ -57,13 +57,21 @@ export const handleMatchingEvents = (io: Server, socket: Socket) => {
     }
 
     try {
-      // Create a call between the watcher and the user
+      // Create a call with the user seeking help as the userId
       const call = await callService.requestCall({
-        userId: data.watcherId,
+        userId: data.userId,
         type: CallType.VIDEO,
       })
 
       console.log(`📞 Created call ${call.id} for match`)
+
+      // Assign the watcher to the call
+      const updatedCall = await callService.assignWatcher({
+        callId: call.id,
+        watcherId: data.watcherId,
+      })
+
+      console.log(`✅ Assigned watcher ${data.watcherId} to call ${call.id}`)
 
       // Mark user as in call
       waitingUser.status = 'in_call'
