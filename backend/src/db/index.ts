@@ -1,4 +1,14 @@
+import 'dotenv/config'
 import { Pool } from 'pg'
+
+// Verify DATABASE_URL is loaded
+if (!process.env.DATABASE_URL) {
+  console.error('❌ DATABASE_URL not found in environment variables!')
+  console.error('   Make sure backend/.env file exists with DATABASE_URL')
+  process.exit(1)
+}
+
+console.log('📊 Database connection:', process.env.DATABASE_URL.replace(/:[^:@]+@/, ':****@'))
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
