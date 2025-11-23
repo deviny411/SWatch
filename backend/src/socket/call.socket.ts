@@ -7,6 +7,9 @@ import { callMatchingService } from '../services/call-matching.service'
 const socketUserMap = new Map<string, string>() // socketId -> userId
 const userSocketMap = new Map<string, string>() // userId -> socketId
 
+// Store test call rooms (in-memory for testing)
+const testRooms = new Map<string, { callId: string; userId: string; socketId: string }>() // callId -> room info
+
 export const handleCallEvents = (io: Server, socket: Socket) => {
   /**
    * User joins as themselves (store their socket mapping)
@@ -201,6 +204,51 @@ export const handleCallEvents = (io: Server, socket: Socket) => {
   })
 
   /**
+   * TEST CALL HANDLERS - Simple P2P without database
+   */
+
+  /**
+   * Create a test call room
+   */
+  socket.on('test:create-room', (data: { callId: string; userId: string }) => {
+    console.log(`🧪 Test room created: ${data.callId} by user ${data.userId}`)
+
+    // Store the room
+    testRooms.set(data.callId, {
+      callId: data.callId,
+      userId: data.userId,
+      socketId: socket.id,
+    })
+
+    // Confirm room creation to the creator
+    socket.emit('test:room-created', { callId: data.callId })
+  })
+
+  /**
+   * Join a test call room
+   */
+  socket.on('test:join-room', (data: { callId: string; userId: string }) => {
+    console.log(`🧪 User ${data.userId} joining test room: ${data.callId}`)
+
+    const room = testRooms.get(data.callId)
+
+    if (!room) {
+      // Room doesn't exist
+      socket.emit('test:room-not-found', { callId: data.callId })
+      console.log(`⚠️ Test room ${data.callId} not found`)
+      return
+    }
+
+    // Notify the room creator that someone joined
+    io.to(room.socketId).emit('test:peer-joined', { userId: data.userId })
+
+    // Notify the joiner about the waiting peer
+    socket.emit('test:peer-waiting', { userId: room.userId })
+
+    console.log(`✅ Connected users ${room.userId} <-> ${data.userId} in room ${data.callId}`)
+  })
+
+  /**
    * Handle disconnect
    */
   socket.on('disconnect', async () => {
@@ -209,6 +257,14 @@ export const handleCallEvents = (io: Server, socket: Socket) => {
       console.log(`User ${userId} disconnected`)
       socketUserMap.delete(socket.id)
       userSocketMap.delete(userId)
+
+      // Clean up any test rooms created by this socket
+      for (const [callId, room] of testRooms.entries()) {
+        if (room.socketId === socket.id) {
+          testRooms.delete(callId)
+          console.log(`🧪 Cleaned up test room ${callId}`)
+        }
+      }
 
       // Check if they had an active call and end it
       try {
