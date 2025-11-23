@@ -43,13 +43,13 @@ export class CallController {
     try {
       const { callId } = req.params
 
-      const call = await callService.getCall(callId)
+      const result = await callService.getCallWithDetails(callId)
 
-      if (!call) {
+      if (!result) {
         return res.status(404).json({ error: 'Call not found' })
       }
 
-      res.status(200).json({ call })
+      res.status(200).json(result)
     } catch (error: any) {
       console.error('Get call error:', error)
       res.status(500).json({ error: 'Failed to get call' })

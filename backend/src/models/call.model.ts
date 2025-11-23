@@ -46,6 +46,31 @@ export class CallModel {
   }
 
   /**
+   * Find call by ID with watcher userId
+   */
+  async findByIdWithWatcherUserId(id: string): Promise<{ call: Call; watcherUserId?: string } | null> {
+    const result = await query(
+      `SELECT c.*, w.user_id as watcher_user_id
+       FROM calls c
+       LEFT JOIN watchers w ON c.watcher_id = w.id
+       WHERE c.id = $1`,
+      [id]
+    )
+
+    if (result.rows.length === 0) {
+      return null
+    }
+
+    const call = this.mapRowToCall(result.rows[0])
+    const watcherUserId = result.rows[0].watcher_user_id
+
+    return {
+      call,
+      watcherUserId: watcherUserId || undefined,
+    }
+  }
+
+  /**
    * Update call
    */
   async update(id: string, data: UpdateCallData): Promise<Call> {

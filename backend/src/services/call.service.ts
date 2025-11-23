@@ -130,6 +130,17 @@ export class CallService {
   }
 
   /**
+   * Get call by ID with additional details
+   */
+  async getCallWithDetails(callId: string): Promise<{ call: Call; watcherUserId?: string } | null> {
+    const result = await callModel.findByIdWithWatcherUserId(callId)
+    if (!result) {
+      return null
+    }
+    return result
+  }
+
+  /**
    * Get active call for user
    */
   async getActiveCallForUser(userId: string): Promise<Call | null> {

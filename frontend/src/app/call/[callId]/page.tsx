@@ -44,20 +44,25 @@ export default function CallPage() {
       if (!token) return
 
       try {
-        const response = await apiClient.get<{ call: Call }>(`/calls/${callId}`, { token })
+        const response = await apiClient.get<{ call: Call; watcherUserId?: string }>(`/calls/${callId}`, { token })
         setCall(response.call)
 
-        // Determine if this user is the initiator
+        // Determine if this user is the initiator (user seeking help initiates the call)
         const initiator = response.call.userId === user?.id
         setIsInitiator(initiator)
 
         // Set remote user ID
-        setRemoteUserId(initiator ? response.call.watcherId! : response.call.userId)
+        // If user seeking help (initiator): remote is watcher's USER ID
+        // If watcher (non-initiator): remote is the user seeking help's ID
+        const remoteId = initiator ? response.watcherUserId! : response.call.userId
+        setRemoteUserId(remoteId)
 
         console.log('📞 Call details:', {
           isInitiator: initiator,
           localUser: user?.id,
-          remoteUser: initiator ? response.call.watcherId : response.call.userId,
+          remoteUserId: remoteId,
+          watcherUserId: response.watcherUserId,
+          callUserId: response.call.userId,
         })
       } catch (err) {
         console.error('Failed to fetch call:', err)
