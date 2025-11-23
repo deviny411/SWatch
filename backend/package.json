@@ -9,7 +9,8 @@
     "lint": "eslint src/**/*.ts",
     "type-check": "tsc --noEmit",
     "init-db": "tsx scripts/init-db.ts",
-    "test-db": "tsx scripts/test-db.ts"
+    "test-db": "tsx scripts/test-db.ts",
+    "test-auth": "tsx scripts/test-auth.ts"
   },
   "dependencies": {
     "express": "^4.18.2",
