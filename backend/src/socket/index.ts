@@ -1,6 +1,7 @@
 import { Server, Socket } from 'socket.io'
 import { handleCallEvents } from './call.socket'
 import { handleEmergencyEvents } from './emergency.socket'
+import { handleMatchingEvents } from './matching.socket'
 
 export const setupSocketHandlers = (io: Server) => {
   io.on('connection', (socket: Socket) => {
@@ -19,6 +20,7 @@ export const setupSocketHandlers = (io: Server) => {
     // Register event handlers
     handleCallEvents(io, socket)
     handleEmergencyEvents(io, socket)
+    handleMatchingEvents(io, socket)
 
     socket.on('disconnect', () => {
       console.log(`Client disconnected: ${socket.id}`)

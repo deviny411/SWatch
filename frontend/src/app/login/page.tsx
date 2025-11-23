@@ -2,41 +2,30 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import { useAuth } from '@/contexts/AuthContext'
 
 export default function LoginPage() {
   const router = useRouter()
-  const { login, loginAnonymous } = useAuth()
-  const [phoneNumber, setPhoneNumber] = useState('')
-  const [password, setPassword] = useState('')
+  const { loginAnonymous } = useAuth()
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
-
-    try {
-      await login(phoneNumber, password)
-      router.push('/dashboard')
-    } catch (err: any) {
-      setError(err.message || 'Login failed. Please check your credentials.')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleAnonymous = async () => {
+  const handleRoleSelect = async (role: 'user' | 'watcher') => {
     setError('')
     setLoading(true)
 
     try {
       await loginAnonymous()
-      router.push('/dashboard')
+      // After login, redirect based on role
+      if (role === 'user') {
+        // User seeking help - go to waiting/matching page
+        router.push('/seek-help')
+      } else {
+        // Watcher - go to dashboard to see available users
+        router.push('/dashboard')
+      }
     } catch (err: any) {
-      setError(err.message || 'Anonymous login failed.')
+      setError(err.message || 'Failed to connect. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -44,91 +33,71 @@ export default function LoginPage() {
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-8 bg-gray-50 dark:bg-gray-900">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-2">SafeWatch</h1>
-          <p className="text-gray-600 dark:text-gray-300">Sign in to your account</p>
-        </div>
-
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {error && (
-              <div className="p-3 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-200 rounded">
-                {error}
-              </div>
-            )}
-
-            <div>
-              <label htmlFor="phoneNumber" className="block text-sm font-medium mb-2">
-                Phone Number
-              </label>
-              <input
-                id="phoneNumber"
-                type="tel"
-                value={phoneNumber}
-                onChange={(e) => setPhoneNumber(e.target.value)}
-                placeholder="+1234567890"
-                required
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium mb-2">
-                Password
-              </label>
-              <input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                required
-                minLength={6}
-                className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-primary-500 dark:bg-gray-700 dark:border-gray-600"
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full px-6 py-3 bg-primary-600 text-white font-semibold rounded-lg hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
-            >
-              {loading ? 'Signing in...' : 'Sign In'}
-            </button>
-          </form>
-
-          <div className="mt-6">
-            <div className="relative">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white dark:bg-gray-800 text-gray-500">Or</span>
-              </div>
-            </div>
-
-            <button
-              onClick={handleAnonymous}
-              disabled={loading}
-              className="w-full mt-4 px-6 py-3 bg-gray-200 dark:bg-gray-700 font-semibold rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition"
-            >
-              Continue Anonymously
-            </button>
-          </div>
-
-          <p className="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
-            Don't have an account?{' '}
-            <Link href="/register" className="text-primary-600 hover:text-primary-700 font-semibold">
-              Register
-            </Link>
+      <div className="w-full max-w-2xl">
+        <div className="text-center mb-12">
+          <h1 className="text-5xl font-bold mb-4">SafeWatch</h1>
+          <p className="text-xl text-gray-600 dark:text-gray-300">
+            Overdose Prevention Support
           </p>
         </div>
 
-        <div className="mt-6 text-center">
-          <Link href="/" className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200">
-            ← Back to home
-          </Link>
+        {error && (
+          <div className="mb-6 p-4 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-200 rounded-lg text-center">
+            {error}
+          </div>
+        )}
+
+        <div className="grid md:grid-cols-2 gap-6">
+          {/* Seeking Help */}
+          <button
+            onClick={() => handleRoleSelect('user')}
+            disabled={loading}
+            className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed text-left group"
+          >
+            <div className="flex flex-col items-center text-center">
+              <div className="w-20 h-20 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition">
+                <svg className="w-10 h-10 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+              </div>
+              <h2 className="text-2xl font-bold mb-2">Seeking Help</h2>
+              <p className="text-gray-600 dark:text-gray-400">
+                Connect with a trained watcher who will stay with you during your session
+              </p>
+            </div>
+          </button>
+
+          {/* Watcher */}
+          <button
+            onClick={() => handleRoleSelect('watcher')}
+            disabled={loading}
+            className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed text-left group"
+          >
+            <div className="flex flex-col items-center text-center">
+              <div className="w-20 h-20 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition">
+                <svg className="w-10 h-10 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+              </div>
+              <h2 className="text-2xl font-bold mb-2">Be a Watcher</h2>
+              <p className="text-gray-600 dark:text-gray-400">
+                Help keep someone safe by monitoring their session
+              </p>
+            </div>
+          </button>
+        </div>
+
+        {loading && (
+          <div className="mt-8 text-center text-gray-600 dark:text-gray-400">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+            <p className="mt-2">Connecting...</p>
+          </div>
+        )}
+
+        <div className="mt-12 text-center text-sm text-gray-500 dark:text-gray-400">
+          <p>SafeWatch connects people who need support with trained volunteers</p>
+          <p className="mt-2">All sessions are confidential and anonymous</p>
         </div>
       </div>
     </main>
