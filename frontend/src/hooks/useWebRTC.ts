@@ -5,6 +5,7 @@ import SimplePeer from 'simple-peer'
 import { CallStatus, CallType } from '@shared/types'
 import { useSocket } from './useSocket'
 import { useMediaStream } from './useMediaStream'
+import { useAuth } from '@/contexts/AuthContext'
 
 export interface UseWebRTCOptions {
   callId: string
@@ -16,6 +17,7 @@ export interface UseWebRTCOptions {
 
 export function useWebRTC(options: UseWebRTCOptions) {
   const { callId, isInitiator, callType, localStream, remoteUserId } = options
+  const { user } = useAuth()
   const { socket, emit, on } = useSocket()
   const [peer, setPeer] = useState<SimplePeer.Instance | null>(null)
   const [remoteStream, setRemoteStream] = useState<MediaStream | null>(null)
@@ -26,13 +28,20 @@ export function useWebRTC(options: UseWebRTCOptions) {
 
   // Initialize WebRTC peer connection
   useEffect(() => {
-    if (!localStream || !socket) {
+    // Don't create peer until we have local stream, socket, AND remote user ID
+    if (!localStream || !socket || !remoteUserId) {
+      console.log('⏳ Waiting for requirements:', {
+        hasStream: !!localStream,
+        hasSocket: !!socket,
+        hasRemoteUser: !!remoteUserId
+      })
       return
     }
 
     console.log('🔄 Initializing WebRTC peer connection')
     console.log('  - Initiator:', isInitiator)
     console.log('  - Call type:', callType)
+    console.log('  - Remote user:', remoteUserId)
 
     try {
       // Create peer connection
@@ -52,11 +61,12 @@ export function useWebRTC(options: UseWebRTCOptions) {
 
       // Handle signaling data (offer/answer/ICE candidates)
       peerConnection.on('signal', (data) => {
-        console.log('📤 Sending signal:', data.type)
+        console.log('📤 Sending signal:', data.type, 'from', user?.id, 'to', remoteUserId)
+        setConnectionState('connecting')
         emit('call:signal', {
           type: data.type || 'signal',
           callId,
-          from: socket.id,
+          from: user?.id,
           to: remoteUserId,
           data,
         })
@@ -65,6 +75,8 @@ export function useWebRTC(options: UseWebRTCOptions) {
       // Handle remote stream
       peerConnection.on('stream', (stream: MediaStream) => {
         console.log('📥 Received remote stream:', stream.id)
+        console.log('   Video tracks:', stream.getVideoTracks().length)
+        console.log('   Audio tracks:', stream.getAudioTracks().length)
         setRemoteStream(stream)
       })
 
@@ -100,21 +112,24 @@ export function useWebRTC(options: UseWebRTCOptions) {
         peerRef.current = null
       }
     }
-  }, [localStream, socket, isInitiator])
+  }, [localStream, socket, isInitiator, remoteUserId, callId, callType, emit])
 
   // Listen for incoming signals
   useEffect(() => {
     if (!on) return
 
     const cleanup = on('call:signal', (signal: any) => {
-      console.log('📥 Received signal:', signal.type)
+      console.log('📥 Received signal:', signal.type, 'from', signal.from, 'to', signal.to)
 
       if (peerRef.current && signal.data) {
         try {
+          console.log('   Processing signal with peer...')
           peerRef.current.signal(signal.data)
         } catch (err) {
-          console.error('Error processing signal:', err)
+          console.error('❌ Error processing signal:', err)
         }
+      } else {
+        console.warn('⚠️ Cannot process signal - peer not ready or no data')
       }
     })
 
